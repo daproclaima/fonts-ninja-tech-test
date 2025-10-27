@@ -11,7 +11,9 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "prepare": "husky",
+    "commit:test": ""
   },
   "dependencies": {
     "next": "15.5.6",
@@ -27,6 +29,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@vitejs/plugin-react": "5.1.0",
+    "husky": "9.1.7",
     "jsdom": "27.0.1",
     "supertest": "7.1.4",
     "tailwindcss": "4.1.16",
