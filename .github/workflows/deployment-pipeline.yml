@@ -5,17 +5,33 @@ env:
 
 permissions:
   contents: write
+  deployments: write
+  actions: read
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      rc_tag:
+        description: 'Release Candidate tag (e.g., rc-2025-01-15-14-30-abc123)'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - production
+        default: production
 
 jobs:
   setup:
     name: Setup & Cache Dependencies
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -35,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ setup ]
+    if: success() && github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -61,8 +78,8 @@ jobs:
     name: Acceptance Stage
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [ setup, commit-stage ]
-    if: success()
+    needs: [ commit-stage ]
+    if: success() && github.event_name == 'push'
     outputs:
       rc-tag: ${{ steps.create-rc-tag.outputs.rc_tag }}
     steps:
@@ -93,10 +110,12 @@ jobs:
         id: create-rc-tag
         if: success()
         run: |
-          DATE=$(date -u +"%Y-%m-%d")
-          TIME=$(date -u +"%H-%M")
+          VERSION=$(cat package.json | jq -r '.version')
+          RUN_ID="${{ github.run_id }}"
           SHORT_SHA=$(git rev-parse --short HEAD)
-          TAG_NAME="rc-${DATE}-${TIME}-${SHORT_SHA}"
+          TIMESTAMP=$(date -u +'%Y-%m-%dT%H-%M-%SZ')
+          
+          TAG_NAME="${VERSION}-rc.${RUN_ID}+${SHORT_SHA}.${TIMESTAMP}"
           
           echo "🏷️ Creating release candidate tag: $TAG_NAME"
           
@@ -105,10 +124,13 @@ jobs:
           
           git tag -a "$TAG_NAME" -m "Release candidate created
           
-          Commit: ${{ github.sha }}
-          Build: ${{ github.run_number }}
-          Actor: ${{ github.actor }}
-          Timestamp: ${DATE} ${TIME} UTC
+          VERSION: ${VERSION}
+          RUN_ID: ${RUN_ID}
+          RUN_NUMBER: ${{ github.run_number }}
+          COMMIT: ${{ github.sha }}
+          COMMIT_SHORT: ${SHORT_SHA}
+          ACTOR: ${{ github.actor }}
+          TIMESTAMP: ${TIMESTAMP}
           
           This commit has passed:
           ✅ Setup: Dependencies installed once
@@ -129,31 +151,84 @@ jobs:
         with:
           name: build-artifact-${{ steps.create-rc-tag.outputs.rc_tag }}
           path: |
-            .next
+            .next/
             package.json
             package-lock.json
           retention-days: 30
           compression-level: 6
+          include-hidden-files: true
 
-      - name: Create Artifact Metadata
-        if: success()
+  deployment:
+    name: Deploy Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.rc_tag != '')
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout at tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.rc_tag }}
+
+      - name: Validate & Download Build Artifact from Original Run
+        id: validate-artifact
         run: |
-          cat > artifact-metadata.json << EOF
-          {
-            "rc_tag": "${{ steps.create-rc-tag.outputs.rc_tag }}",
-            "artifact_id": "${{ steps.upload-artifact.outputs.artifact-id }}",
-            "artifact_name": "build-artifact-${{ steps.create-rc-tag.outputs.rc_tag }}",
-            "commit_sha": "${{ github.sha }}",
-            "commit_short": "$(git rev-parse --short HEAD)",
-            "build_number": "${{ github.run_number }}",
-            "actor": "${{ github.actor }}",
-            "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-            "tests_passed": true,
-            "build_successful": true,
-            "ready_for_deployment": true
-          }
-          EOF
-          cat artifact-metadata.json
+          RC_TAG="${{ github.event.inputs.rc_tag }}"
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' "$RC_TAG")
+          RUN_ID=$(echo "$TAG_MESSAGE" | grep "RUN_ID:" | awk '{print $2}')
+          ARTIFACT_NAME="build-artifact-${RC_TAG}"
+          
+          echo "🔍 Validating artifact from original run #$RUN_ID: $ARTIFACT_NAME"
+          
+          # Download artifact from the specific build run
+          if ! gh run download "$RUN_ID" --name "$ARTIFACT_NAME" -D /tmp/artifact 2>/dev/null; then
+            echo "❌ Build artifact not found from run #$RUN_ID: $ARTIFACT_NAME"
+            exit 1
+          fi
+          
+          if [ -d "/tmp/artifact/.next" ]; then
+            echo "✅ Build artifact validated: $ARTIFACT_NAME from run #$RUN_ID"
+            echo "artifact_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build artifact missing .next folder"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  #deployment: pick rc-candidate build and environment (integration, uat, production)
-  #post-deployment: run smoke test every minute, log result and raise alert when necessary
+      - name: Copy Validated Build Artifact
+        run: |
+          echo "📦 Copying validated build artifact"
+          cp -r /tmp/artifact/* ./
+          ls -la .next/
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          RC_TAG="${{ github.event.inputs.rc_tag }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          echo "🚀 Deploying RC $RC_TAG to $ENVIRONMENT"
+          
+          URL=$(vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}" --yes)
+          echo "✅ Deployed to ${{ github.event.inputs.environment }}"
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "🌐 Deployment URL: $URL"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          NODE_ENV: production
+
+#post-deployment: run smoke test every minute, log result and raise alert when necessary
