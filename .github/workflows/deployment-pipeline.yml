@@ -5,17 +5,33 @@ env:
 
 permissions:
   contents: write
+  deployments: write
+  actions: read
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      rc_tag:
+        description: 'Release Candidate tag (e.g., 0.1.0-rc.18874936800.3e56a08.2025-10-28T12-36-47Z)'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - production
+        default: production
 
 jobs:
   setup:
     name: Setup & Cache Dependencies
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -35,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ setup ]
+    if: success() && github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -61,8 +78,8 @@ jobs:
     name: Acceptance Stage
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [ setup, commit-stage ]
-    if: success()
+    needs: [ commit-stage ]
+    if: success() && github.event_name == 'push'
     outputs:
       rc-tag: ${{ steps.create-rc-tag.outputs.rc_tag }}
     steps:
@@ -89,14 +106,32 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e 2>/dev/null || echo "No E2E tests found"
 
+      - name: Verify Build Artifacts Exist
+        if: success()
+        run: |
+          echo "🔍 Verifying build artifacts before upload"
+          
+          if [ -d ".next" ]; then
+            NEXT_FILES=$(find .next/ -type f | wc -l)
+            echo "✅ .next/ directory found with $NEXT_FILES files"
+            ls -lha .next/ | head -10
+          else
+            echo "❌ ERROR: .next/ directory not found!"
+            echo "Current directory contents:"
+            ls -lha ./
+            exit 1
+          fi
+
       - name: Create Release Candidate Tag
         id: create-rc-tag
         if: success()
         run: |
-          DATE=$(date -u +"%Y-%m-%d")
-          TIME=$(date -u +"%H-%M")
+          VERSION=$(cat package.json | jq -r '.version')
+          RUN_ID="${{ github.run_id }}"
           SHORT_SHA=$(git rev-parse --short HEAD)
-          TAG_NAME="rc-${DATE}-${TIME}-${SHORT_SHA}"
+          TIMESTAMP=$(date -u +'%Y-%m-%dT%H-%M-%SZ')
+          
+          TAG_NAME="${VERSION}-rc.${RUN_ID}.${SHORT_SHA}.${TIMESTAMP}"
           
           echo "🏷️ Creating release candidate tag: $TAG_NAME"
           
@@ -105,10 +140,13 @@ jobs:
           
           git tag -a "$TAG_NAME" -m "Release candidate created
           
-          Commit: ${{ github.sha }}
-          Build: ${{ github.run_number }}
-          Actor: ${{ github.actor }}
-          Timestamp: ${DATE} ${TIME} UTC
+          VERSION: ${VERSION}
+          RUN_ID: ${RUN_ID}
+          RUN_NUMBER: ${{ github.run_number }}
+          COMMIT: ${{ github.sha }}
+          COMMIT_SHORT: ${SHORT_SHA}
+          ACTOR: ${{ github.actor }}
+          TIMESTAMP: ${TIMESTAMP}
           
           This commit has passed:
           ✅ Setup: Dependencies installed once
@@ -129,31 +167,178 @@ jobs:
         with:
           name: build-artifact-${{ steps.create-rc-tag.outputs.rc_tag }}
           path: |
-            .next
+            .next/
             package.json
             package-lock.json
           retention-days: 30
           compression-level: 6
+          include-hidden-files: true
 
-      - name: Create Artifact Metadata
-        if: success()
+  # quality-stage: test coverage, code design
+  # security-stage: snyk vulnerabilities check
+
+  deployment:
+    name: Deploy Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.rc_tag != '')
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout at tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.rc_tag }}
+
+      - name: Validate & Download Build Artifact from Original Run
+        id: validate-artifact
         run: |
-          cat > artifact-metadata.json << EOF
-          {
-            "rc_tag": "${{ steps.create-rc-tag.outputs.rc_tag }}",
-            "artifact_id": "${{ steps.upload-artifact.outputs.artifact-id }}",
-            "artifact_name": "build-artifact-${{ steps.create-rc-tag.outputs.rc_tag }}",
-            "commit_sha": "${{ github.sha }}",
-            "commit_short": "$(git rev-parse --short HEAD)",
-            "build_number": "${{ github.run_number }}",
-            "actor": "${{ github.actor }}",
-            "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-            "tests_passed": true,
-            "build_successful": true,
-            "ready_for_deployment": true
-          }
-          EOF
-          cat artifact-metadata.json
+          RC_TAG="${{ github.event.inputs.rc_tag }}"
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' "$RC_TAG")
+          RUN_ID=$(echo "$TAG_MESSAGE" | grep "RUN_ID:" | awk '{print $2}')
+          ARTIFACT_NAME="build-artifact-${RC_TAG}"
+          
+          echo "🔍 Validating artifact from original run #$RUN_ID: $ARTIFACT_NAME"
+          
+          if ! gh run download "$RUN_ID" --name "$ARTIFACT_NAME" -D /tmp/artifact 2>/dev/null; then
+            echo "❌ Build artifact not found from run #$RUN_ID: $ARTIFACT_NAME"
+            exit 1
+          fi
+          
+          echo "✅ Artifact downloaded to /tmp/artifact"
+          echo ""
+          echo "📋 Artifact structure:"
+          find /tmp/artifact -type f | head -15
+          
+          REQUIRED_FILES=(".next" "package.json" "package-lock.json")
+          for file in "${REQUIRED_FILES[@]}"; do
+            if find /tmp/artifact -name "$file" >/dev/null 2>&1; then
+              echo "✅ Build artifact contains: $file"
+            else
+              echo "❌ Build artifact missing: $file"
+              echo "❌ Artifact contents:"
+              find /tmp/artifact -type f
+              exit 1
+            fi
+          done
+          
+          echo "artifact_found=true" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  #deployment: pick rc-candidate build and environment (integration, uat, production)
-  #post-deployment: run smoke test every minute, log result and raise alert when necessary
+      - name: Copy Validated Build Artifact
+        run: |
+          echo "📦 Inspecting artifact structure"
+          echo "Contents of /tmp/artifact/:"
+          ls -lha /tmp/artifact/
+          
+          echo ""
+          echo "Finding .next directory:"
+          NEXT_PATH=$(find /tmp/artifact -type d -name ".next" | head -1)
+          
+          if [ -z "$NEXT_PATH" ]; then
+            echo "❌ ERROR: .next directory not found in artifact!"
+            echo "Full artifact structure:"
+            find /tmp/artifact -type f | head -20
+            exit 1
+          fi
+          
+          echo "✅ Found .next at: $NEXT_PATH"
+          
+          # Get the parent directory of .next
+          ARTIFACT_ROOT=$(dirname "$NEXT_PATH")
+          echo "Artifact root: $ARTIFACT_ROOT"
+          
+          echo ""
+          echo "📦 Copying artifact contents from $ARTIFACT_ROOT to current directory"
+          cp -rv "$ARTIFACT_ROOT"/.next ./
+          cp -v "$ARTIFACT_ROOT"/package.json ./
+          cp -v "$ARTIFACT_ROOT"/package-lock.json ./
+          
+          echo ""
+          echo "✅ Verifying copied files:"
+          
+          if [ -d ".next" ]; then
+            FILE_COUNT=$(find .next/ -type f | wc -l)
+            echo "✅ .next/ found with $FILE_COUNT files"
+          else
+            echo "❌ CRITICAL: .next/ not found after copy!"
+            exit 1
+          fi
+          
+          for file in package.json package-lock.json; do
+            if [ -f "$file" ]; then
+              echo "✅ $file found"
+            else
+              echo "❌ CRITICAL: $file not found after copy!"
+              exit 1
+            fi
+          done
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # https://vercel.com/docs/git/vercel-for-github, https://vercel.com/docs/cli/deploy, https://github.com/vercel/next.js/discussions/20905
+      - name: Deploy Build
+        id: deploy-vercel
+        run: |
+          PULL_ENV_FLAG=""
+          DEPLOY_ENV_FLAG=""
+          
+          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            PULL_ENV_FLAG="--environment=production"
+            DEPLOY_ENV_FLAG="--prod"
+          fi
+          
+          npm exec vercel whoami
+          
+          npm exec vercel pull --yes $PULL_ENV_FLAG
+          npm exec vercel build $DEPLOY_ENV_FLAG
+          
+          echo "🚀 Deploying .next to ${{ github.event.inputs.environment }}"
+          URL=$(npm exec vercel deploy --yes $DEPLOY_ENV_FLAG)
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "🌐 Deployment URL: $URL"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Prepare Deployment Output
+        id: prepare-output
+        run: |
+          RC_TAG="${{ github.event.inputs.rc_tag }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          echo "✅ Deployment Complete"
+          echo "RC Tag: $RC_TAG"
+          echo "Environment: $ENVIRONMENT"
+          echo "Preview URL: ${{ steps.deploy.outputs.preview-url }}"
+          
+          # Set output URL based on deployment type
+          if [ "$ENVIRONMENT" == "production" ]; then
+            URL="${{ steps.deploy.outputs.url }}"
+            echo "Production URL: $URL"
+          else
+            URL="${{ steps.deploy.outputs.preview-url }}"
+            echo "Staging Preview URL: $URL"
+          fi
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          
+          # Set NODE_ENV based on environment
+          if [ "$ENVIRONMENT" == "production" ]; then
+            echo "NODE_ENV=production" >> $GITHUB_ENV
+          else
+            echo "NODE_ENV=staging" >> $GITHUB_ENV
+          fi
+
+#post-deployment: run smoke test every minute, log result and raise alert when necessary
