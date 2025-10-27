@@ -5,11 +5,25 @@ env:
 
 permissions:
   contents: write
+  deployments: write
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      rc_tag:
+        description: 'Release Candidate tag (e.g., rc-2025-01-15-14-30-abc123)'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - production
+        default: production
 
 jobs:
   setup:
@@ -155,5 +169,55 @@ jobs:
           EOF
           cat artifact-metadata.json
 
+  deployment:
+    name: Deployment Stage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout at tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.rc_tag }}
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact-${{ github.event.inputs.rc_tag }}
+          path: ./
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+          cache: 'npm'
+
+      - run: npm ci
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          npm i -g vercel@latest
+          
+          RC_TAG="${{ github.event.inputs.rc_tag }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          echo "🚀 Deploying RC $RC_TAG to $ENVIRONMENT"
+          
+          URL=$(vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}" --yes)
+          echo "✅ Deployed to ${{ github.event.inputs.environment }}"
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "🌐 Deployment URL: $URL"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          NODE_ENV: production
   #deployment: pick rc-candidate build and environment (integration, uat, production)
   #post-deployment: run smoke test every minute, log result and raise alert when necessary
