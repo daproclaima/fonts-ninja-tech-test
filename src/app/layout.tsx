@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
+// import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 // const geistSans = Geist({
@@ -26,11 +27,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <header>
-          <Link href="/" aria-label="fonts ninja logo - return to home page">
-            Ninja
+        <header className="px-14 pt-12 flex flex-row justify-between">
+          <Link href="/" aria-label="return to home page">
+            <Image
+              className="dark:invert"
+              src="/fonts-ninja.svg"
+              alt="fonts ninja logo"
+              width={24}
+              height={26}
+              priority
+            />
           </Link>
         </header>
         {children}

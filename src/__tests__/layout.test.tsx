@@ -1,9 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import Layout from "../app/layout";
 
 describe("Feature: Layout", () => {
-  const renderLayout = () => render(<Layout>children</Layout>)
+  const renderLayout = () => render(<Layout>children</Layout>);
 
   describe("Given the Layout component is rendered", () => {
     describe.todo("When the page loads", () => {
@@ -12,8 +12,15 @@ describe("Feature: Layout", () => {
 
     describe("When user clicks on the Ninja logo", () => {
       test("Then user is redirected to the home page `/`", async () => {
-        renderLayout()
-        expect(screen.getByRole('link', { name: 'fonts ninja logo - return to home page' })).toHaveAttribute("href", "/");
+        renderLayout();
+
+        const homeLink = screen.getByRole("link", {
+          name: "return to home page",
+        });
+        expect(homeLink).toHaveAttribute("href", "/");
+        expect(
+          within(homeLink).getByRole("img", { name: "fonts ninja logo" }),
+        ).toBeInTheDocument();
       });
     });
 
