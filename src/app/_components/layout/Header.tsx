@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { toggleTheme } from "@/app/_components/theme/theme.utils";
 
 export const Header = () => (
   <header className="px-14 pt-12 flex flex-row justify-between">
@@ -19,6 +20,7 @@ export const Header = () => (
     <button
       type="button"
       className="w-[150px] py-4 px-2 bg-coral rounded-2xl first-letter:uppercase"
+      onClick={toggleTheme}
     >
       switch theme
     </button>

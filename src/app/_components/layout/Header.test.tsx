@@ -1,10 +1,20 @@
-import { render, screen, within, cleanup } from "@testing-library/react";
-import { beforeEach, describe, expect, test } from "vitest";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { Header } from "./Header";
+
+const { toggleTheme } = vi.hoisted(() => ({
+  toggleTheme: vi.fn(),
+}));
+
+vi.mock("@/app/_components/theme/theme.utils", () => ({
+  toggleTheme,
+}));
 
 describe("Feature: Layout Header", () => {
   beforeEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
   describe("Given the Header renders", () => {
@@ -33,14 +43,19 @@ describe("Feature: Layout Header", () => {
     });
 
     describe("When user clicks on the Switch Theme button", () => {
-      test("Then the color theme changes from light to dark", () => {
+      test("Then the color theme changes from light to dark", async () => {
+        const user = userEvent.setup();
         renderHeader();
 
-        expect(
-          screen.getByRole("button", {
-            name: "switch theme",
-          }),
-        ).toBeInTheDocument();
+        const switchThemeButton = screen.getByRole("button", {
+          name: "switch theme",
+        });
+
+        await act(async () => {
+          await user.click(switchThemeButton);
+        });
+
+        expect(toggleTheme).toHaveBeenCalledOnce();
       });
 
       test.todo("Then the color theme changes from dark to light");
