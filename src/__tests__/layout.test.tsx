@@ -1,5 +1,5 @@
-import {cleanup, render} from "@testing-library/react";
-import {beforeEach, describe, expect, test} from "vitest";
+import { cleanup, render } from "@testing-library/react";
+import { beforeEach, describe, expect, test } from "vitest";
 import Layout from "../app/layout";
 
 describe("Feature: Layout", () => {
@@ -12,9 +12,9 @@ describe("Feature: Layout", () => {
 
     describe("When is on server", () => {
       test("Then the content is present", () => {
-        const { container } = renderLayout()
+        const { container } = renderLayout();
 
-        expect(container).toMatchSnapshot()
+        expect(container).toMatchSnapshot();
       });
     });
   });

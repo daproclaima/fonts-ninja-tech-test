@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -16,7 +16,11 @@ export const Header = () => (
       />
     </Link>
 
-    <button type="button" className="w-[150px] py-4 px-2 bg-coral rounded-2xl first-letter:uppercase">switch theme
+    <button
+      type="button"
+      className="w-[150px] py-4 px-2 bg-coral rounded-2xl first-letter:uppercase"
+    >
+      switch theme
     </button>
   </header>
-)
+);

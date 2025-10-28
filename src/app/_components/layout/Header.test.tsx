@@ -8,13 +8,13 @@ describe("Feature: Layout Header", () => {
   });
 
   describe("Given the Header renders", () => {
-    const renderHeader = () => render(<Header/>);
+    const renderHeader = () => render(<Header />);
 
     describe("When the page renders on server", () => {
       test("Then the content is present", () => {
-        const { container } = renderHeader()
+        const { container } = renderHeader();
 
-        expect(container).toMatchSnapshot()
+        expect(container).toMatchSnapshot();
       });
     });
 
@@ -36,9 +36,11 @@ describe("Feature: Layout Header", () => {
       test("Then the color theme changes from light to dark", () => {
         renderHeader();
 
-        expect(screen.getByRole("button", {
-          name: "switch theme",
-        })).toBeInTheDocument()
+        expect(
+          screen.getByRole("button", {
+            name: "switch theme",
+          }),
+        ).toBeInTheDocument();
       });
 
       test.todo("Then the color theme changes from dark to light");
