@@ -11,9 +11,9 @@ describe("Feature: Layout", () => {
     });
 
     describe("When user clicks on the Ninja logo", () => {
-      test.fails("Then user is redirected to the home page `/`", async () => {
+      test("Then user is redirected to the home page `/`", async () => {
         renderLayout()
-        expect(screen.getByRole('link', { name: 'fonts ninja logo - return to home page' }))
+        expect(screen.getByRole('link', { name: 'fonts ninja logo - return to home page' })).toHaveAttribute("href", "/");
       });
     });
 
