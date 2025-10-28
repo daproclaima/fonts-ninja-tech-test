@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Feature: Layout Header > Given the Header renders > When the page renders on server > Then the content is present 1`] = `
+<div>
+  <header
+    class="px-14 pt-12 flex flex-row justify-between"
+  >
+    <a
+      aria-label="return to home page"
+      href="/"
+    >
+      <img
+        alt="fonts ninja logo"
+        class="dark:invert"
+        data-nimg="1"
+        decoding="async"
+        height="26"
+        src="/fonts-ninja.svg"
+        style="color: transparent;"
+        width="24"
+      />
+    </a>
+    <button
+      class="w-[150px] py-4 px-2 bg-coral rounded-2xl first-letter:uppercase"
+      type="button"
+    >
+      switch theme
+    </button>
+  </header>
+</div>
+`;

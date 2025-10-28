@@ -1,32 +1,21 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import {cleanup, render} from "@testing-library/react";
+import {beforeEach, describe, expect, test} from "vitest";
 import Layout from "../app/layout";
 
 describe("Feature: Layout", () => {
-  const renderLayout = () => render(<Layout>children</Layout>);
+  beforeEach(() => {
+    cleanup();
+  });
 
   describe("Given the Layout component is rendered", () => {
-    describe.todo("When the page loads", () => {
-      test.todo("Then its content is present");
-    });
+    const renderLayout = () => render(<Layout>children</Layout>);
 
-    describe("When user clicks on the Ninja logo", () => {
-      test("Then user is redirected to the home page `/`", async () => {
-        renderLayout();
+    describe("When is on server", () => {
+      test("Then the content is present", () => {
+        const { container } = renderLayout()
 
-        const homeLink = screen.getByRole("link", {
-          name: "return to home page",
-        });
-        expect(homeLink).toHaveAttribute("href", "/");
-        expect(
-          within(homeLink).getByRole("img", { name: "fonts ninja logo" }),
-        ).toBeInTheDocument();
+        expect(container).toMatchSnapshot()
       });
-    });
-
-    describe("When user clicks on the Switch Theme button", () => {
-      test.todo("Then the color theme changes from light to dark");
-      test.todo("Then the color theme changes from dark to light");
     });
   });
 });
