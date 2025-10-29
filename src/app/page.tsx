@@ -96,6 +96,7 @@ export default async function Home({
                   images={font.images}
                   price={font.price}
                   totalFonts={font.totalFonts}
+                  url={font.url}
                 />
               ))}
             </div>
