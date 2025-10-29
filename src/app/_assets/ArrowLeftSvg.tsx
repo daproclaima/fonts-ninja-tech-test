@@ -11,16 +11,16 @@ export const ArrowLeftSvg = () => (
     <path
       d="M5.73333 4L2 7.73333L5.73333 11.4667"
       stroke="#636366"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M2 7.73328H13.9333"
       stroke="#636366"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
