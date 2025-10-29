@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Header } from "@/app/_components/layout/Header";
 
 import "./globals.css";
+import Script from "next/script";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -25,7 +26,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          id="theme-initialization"
+          src="/init-theme.js"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body
         className="bg-background text-foreground dark:bg-foreground dark:text-background"
         // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
