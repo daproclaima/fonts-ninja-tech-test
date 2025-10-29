@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { FontCard } from "@/app/_components/FontCard";
 import { Pagination } from "@/app/_components/Pagination";
 
@@ -111,4 +112,18 @@ export default async function Home({
       <footer />
     </div>
   );
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}): Promise<Metadata> {
+  const { page: pageParam } = await searchParams;
+  const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
+
+  console.log("currentPage$: ", currentPage);
+  return {
+    title: `Tech Test | Home - Page ${currentPage}`,
+  };
 }
