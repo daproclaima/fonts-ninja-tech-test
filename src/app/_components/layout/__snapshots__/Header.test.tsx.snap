@@ -3,14 +3,14 @@
 exports[`Feature: Layout Header > Given the Header renders > When the page renders on server > Then the content is present 1`] = `
 <div>
   <header
-    class="px-14 pt-12 flex flex-row justify-between"
+    class="pt-12 flex flex-row justify-between items-center"
   >
     <a
       aria-label="return to home page"
       href="/"
     >
       <svg
-        class="fill-foreground dark:fill-background"
+        class="fill-background dark:fill-foreground"
         fill="#FEFEFE"
         height="26"
         viewBox="0 0 24 26"
