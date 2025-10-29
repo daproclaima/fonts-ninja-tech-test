@@ -10,7 +10,7 @@ exports[`Feature: Layout > Given the Layout component is rendered > When is on s
       href="/"
     >
       <svg
-        class="fill-background dark:fill-foreground"
+        class="fill-foreground dark:fill-background"
         fill="#FEFEFE"
         height="26"
         viewBox="0 0 24 26"

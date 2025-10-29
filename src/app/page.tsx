@@ -96,7 +96,7 @@ export default async function Home({
                   images={font.images}
                   price={font.price}
                   totalFonts={font.totalFonts}
-                  url={font.url}
+                  id={font.idFont}
                 />
               ))}
             </div>
@@ -123,7 +123,6 @@ export async function generateMetadata({
   const { page: pageParam } = await searchParams;
   const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
 
-  console.log("currentPage$: ", currentPage);
   return {
     title: `Tech Test | Home - Page ${currentPage}`,
   };

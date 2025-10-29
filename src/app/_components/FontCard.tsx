@@ -19,7 +19,7 @@ export interface FontCardProps {
     formatedPrice: string;
   } | null;
   totalFonts: number;
-  url: string;
+  id: number;
 }
 
 export const FontCard = ({
@@ -28,10 +28,10 @@ export const FontCard = ({
   images,
   price,
   totalFonts,
-  url,
+  id,
 }: FontCardProps) => {
   return (
-    <Link href={url}>
+    <Link href={`/font/${String(id)}`}>
       <div className="w-[437px] h-[314px] flex flex-col pt-12 pr-[42px] pb-12 pl-14 gap-[33px] overflow-hidden rounded-4xl bg-white dark:bg-dark-gray">
         <div className="max-w-[334px] max-h-[153px] flex items-center justify-start overflow-hidden aspect-video">
           <div
