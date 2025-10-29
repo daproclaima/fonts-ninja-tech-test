@@ -1,14 +1,15 @@
+import { getThemeCookie, setThemeCookie } from "./cookies.utils";
+
 export const toggleTheme = (): void => {
-  const isDark = localStorage.theme === "dark";
-  localStorage.theme = isDark ? "light" : "dark";
+  const isDark = getThemeCookie() === "dark";
+  setThemeCookie(isDark ? "light" : "dark");
   applyTheme();
 };
 
 export const applyTheme = (): void => {
-  document.documentElement.classList.toggle(
-    "dark",
-    localStorage.theme === "dark" ||
-      (!("theme" in localStorage) &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches),
-  );
+  const theme = getThemeCookie();
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const shouldBeDark = theme === "dark" || (theme === undefined && prefersDark);
+
+  document.documentElement.classList.toggle("dark", shouldBeDark);
 };

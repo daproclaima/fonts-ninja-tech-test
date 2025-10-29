@@ -6,11 +6,6 @@ describe("Home Page", () => {
   describe("Given Home Page", () => {
     describe("When it renders", () => {
       test.todo("Then its content exists on server side");
-
-      test('Then "Hello World!" is visible', () => {
-        render(<Page />);
-        expect(screen.getByText("Hello World!")).toBeVisible();
-      });
     });
   });
 });

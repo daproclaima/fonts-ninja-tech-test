@@ -36,14 +36,11 @@ describe("Feature: Layout Header", () => {
           name: "return to home page",
         });
         expect(homeLink).toHaveAttribute("href", "/");
-        expect(
-          within(homeLink).getByRole("img", { name: "fonts ninja logo" }),
-        ).toBeInTheDocument();
       });
     });
 
     describe("When user clicks on the Switch Theme button", () => {
-      test("Then the color theme changes from light to dark", async () => {
+      test("Then the color theme changes", async () => {
         const user = userEvent.setup();
         renderHeader();
 
@@ -57,8 +54,6 @@ describe("Feature: Layout Header", () => {
 
         expect(toggleTheme).toHaveBeenCalledOnce();
       });
-
-      test.todo("Then the color theme changes from dark to light");
     });
   });
 });

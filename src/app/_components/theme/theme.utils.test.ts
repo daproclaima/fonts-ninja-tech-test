@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { applyTheme, toggleTheme } from "./theme.utils";
 
+const { getThemeCookie, setThemeCookie } = vi.hoisted(() => ({
+  getThemeCookie: vi.fn(),
+  setThemeCookie: vi.fn(),
+}));
+
+vi.mock("./cookies.utils", () => ({
+  getThemeCookie,
+  setThemeCookie,
+}));
+
 describe("Feature: Theme Utilities", () => {
   const mockToggle = vi.fn();
   const mockMatchMedia = vi.fn();
@@ -15,47 +25,50 @@ describe("Feature: Theme Utilities", () => {
     Object.assign(window, {
       matchMedia: mockMatchMedia,
     });
-
-    localStorage.clear();
   });
 
   describe("Given toggleTheme is called", () => {
-    describe("When localStorage.theme is 'light'", () => {
-      test("Then theme is set to 'dark'", () => {
-        localStorage.theme = "light";
+    describe("When cookie theme is 'light'", () => {
+      test("Then theme cookie is set to 'dark'", () => {
+        getThemeCookie.mockReturnValue("light");
+        mockMatchMedia.mockReturnValue({ matches: false });
 
         toggleTheme();
 
-        expect(localStorage.theme).toBe("dark");
+        expect(setThemeCookie).toHaveBeenCalledWith("dark");
         expect(mockToggle).toHaveBeenCalled();
       });
     });
 
-    describe("When localStorage.theme is 'dark'", () => {
-      test("Then theme is set to 'light'", () => {
-        localStorage.theme = "dark";
+    describe("When cookie theme is 'dark'", () => {
+      test("Then theme cookie is set to 'light'", () => {
+        getThemeCookie.mockReturnValue("dark");
+        mockMatchMedia.mockReturnValue({ matches: false });
 
         toggleTheme();
 
-        expect(localStorage.theme).toBe("light");
+        expect(setThemeCookie).toHaveBeenCalledWith("light");
         expect(mockToggle).toHaveBeenCalled();
       });
     });
 
-    describe("When localStorage.theme is not set", () => {
-      test("Then theme is set to 'dark'", () => {
+    describe("When cookie theme is not set", () => {
+      test("Then theme cookie is set to 'dark'", () => {
+        getThemeCookie.mockReturnValue(undefined);
+        mockMatchMedia.mockReturnValue({ matches: false });
+
         toggleTheme();
 
-        expect(localStorage.theme).toBe("dark");
+        expect(setThemeCookie).toHaveBeenCalledWith("dark");
         expect(mockToggle).toHaveBeenCalled();
       });
     });
   });
 
   describe("Given applyTheme is called", () => {
-    describe("When localStorage.theme is 'dark'", () => {
+    describe("When cookie theme is 'dark'", () => {
       test("Then classList.toggle is called with 'dark' and true", () => {
-        localStorage.theme = "dark";
+        getThemeCookie.mockReturnValue("dark");
         mockMatchMedia.mockReturnValue({ matches: false });
 
         applyTheme();
@@ -64,9 +77,9 @@ describe("Feature: Theme Utilities", () => {
       });
     });
 
-    describe("When localStorage.theme is 'light'", () => {
+    describe("When cookie theme is 'light'", () => {
       test("Then classList.toggle is called with 'dark' and false", () => {
-        localStorage.theme = "light";
+        getThemeCookie.mockReturnValue("light");
         mockMatchMedia.mockReturnValue({ matches: false });
 
         applyTheme();
@@ -75,8 +88,9 @@ describe("Feature: Theme Utilities", () => {
       });
     });
 
-    describe("When localStorage.theme is not set and system prefers dark", () => {
+    describe("When cookie theme is not set and system prefers dark", () => {
       test("Then classList.toggle is called with 'dark' and true", () => {
+        getThemeCookie.mockReturnValue(undefined);
         mockMatchMedia.mockReturnValue({ matches: true });
 
         applyTheme();
@@ -85,8 +99,9 @@ describe("Feature: Theme Utilities", () => {
       });
     });
 
-    describe("When localStorage.theme is not set and system prefers light", () => {
+    describe("When cookie theme is not set and system prefers light", () => {
       test("Then classList.toggle is called with 'dark' and false", () => {
+        getThemeCookie.mockReturnValue(undefined);
         mockMatchMedia.mockReturnValue({ matches: false });
 
         applyTheme();
