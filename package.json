@@ -11,7 +11,6 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "prepare": "lefthook install",
     "lint": "biome check",
     "format": "biome format --write",
     "test": "vitest run",
