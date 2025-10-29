@@ -6,6 +6,12 @@ pre-commit:
       run: npx @biomejs/biome check --write --files-ignore-unknown=true --colors=off {staged_files}
       stage_fixed: true
 
+    test:
+      run: npm test -- --run --reporter=verbose
+      skip:
+        - merge
+        - rebase
+
 pre-push:
   commands:
     check:
