@@ -1,4 +1,5 @@
 import { FontCard } from "@/app/_components/FontCard";
+import { Pagination } from "@/app/_components/Pagination";
 
 interface FontFamily {
   idFont: number;
@@ -29,9 +30,11 @@ interface FontsResponse {
   totalFamilies: number;
 }
 
-async function getFonts(): Promise<FontsResponse> {
+const ITEMS_PER_PAGE = 24;
+
+async function getFonts(page: number): Promise<FontsResponse> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/families?page=1`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/families?page=${page}`,
     {
       next: { revalidate: 0 },
     },
@@ -44,16 +47,33 @@ async function getFonts(): Promise<FontsResponse> {
   return response.json();
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
+
   let fonts: FontFamily[] = [];
+  let totalFamilies = 0;
   let error: string | null = null;
 
   try {
-    const data = await getFonts();
+    const data = await getFonts(currentPage);
     fonts = data.families;
+    totalFamilies = data.totalFamilies;
+
+    const totalPages = Math.ceil(totalFamilies / ITEMS_PER_PAGE);
+    if (currentPage > totalPages || currentPage < 1) {
+      error = "Page not found";
+      fonts = [];
+    }
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load fonts";
   }
+
+  const totalPages = Math.ceil(totalFamilies / ITEMS_PER_PAGE);
 
   return (
     <div className="w-full">
@@ -80,6 +100,12 @@ export default async function Home() {
             </div>
           )}
         </div>
+
+        {totalPages > 1 && fonts.length > 0 && (
+          <div className="mt-20">
+            <Pagination currentPage={currentPage} totalPages={totalPages} />
+          </div>
+        )}
       </main>
 
       <footer />
