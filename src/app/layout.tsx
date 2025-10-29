@@ -24,7 +24,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="bg-foreground text-background dark:bg-background dark:text-foreground px-14"
+        className="px-14 bg-background text-foreground dark:bg-foreground dark:text-background"
         // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Header />
