@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: oklch(97% 0 0);
-  --foreground: oklch(14.5% 0 0);
+  --background: hsla(0, 0%, 9%, 1);
+  --foreground: oklch(97% 0 0);
 }
 
 @theme inline {
@@ -10,16 +10,18 @@
   --color-foreground: var(--foreground);
   --color-coral: #ee585a;
   --color-gray-25: hsla(0, 0%, 100%, 1);
+  --color-gray-10: #fefefe;
+  --color-dark-gray: hsla(240, 2%, 18%, 1);
   /*--font-sans: var(--font-geist-sans);*/
   /*--font-mono: var(--font-geist-mono);*/
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: oklch(14.5% 0 0);
-    --foreground: oklch(97% 0 0);
+    --background: oklch(97% 0 0);
+    --foreground: oklch(14.5% 0 0);
   }
 }
 

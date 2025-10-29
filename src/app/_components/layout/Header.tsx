@@ -5,7 +5,7 @@ import FontsNinjaSvg from "@/app/_assets/FontsNinjaSvg";
 import { toggleTheme } from "@/app/_components/theme/theme.utils";
 
 export const Header = () => (
-  <header className="px-14 pt-12 flex flex-row justify-between">
+  <header className="pt-12 flex flex-row justify-between items-center">
     <Link href="/" aria-label="return to home page">
       <FontsNinjaSvg />
     </Link>

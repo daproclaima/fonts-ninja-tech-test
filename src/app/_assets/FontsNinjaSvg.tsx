@@ -3,7 +3,7 @@ export default function FontsNinjaSvg() {
     <svg
       width="24"
       height="26"
-      className="fill-foreground dark:fill-background"
+      className="fill-background dark:fill-foreground"
       viewBox="0 0 24 26"
       fill="#FEFEFE"
       xmlns="http://www.w3.org/2000/svg"
