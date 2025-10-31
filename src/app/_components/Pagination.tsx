@@ -32,7 +32,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
             href={page === 1 ? "/" : `/?page=${page}`}
             className={`transition-all ${
               currentPage === page
-                ? "w-8 h-8 py-6 px-6 flex items-center justify-center bg-red-500 text-white rounded-2xl font-semibold"
+                ? "w-8 h-8 py-6 px-6 flex items-center justify-center bg-coral text-white rounded-2xl font-semibold"
                 : "w-8 h-8 py-6 px-6 flex items-center justify-center text-neutral-600 dark:text-gray-10 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
