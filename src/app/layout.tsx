@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <Script
           id="theme-initialization"
@@ -23,10 +23,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
-      <body
-        className="px-14 bg-background text-foreground dark:bg-foreground dark:text-background"
-        // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`px-14 bg-background ${inter.className} antialiased`}>
         <Header />
 
         {children}
