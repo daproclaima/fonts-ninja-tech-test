@@ -3,7 +3,7 @@
 exports[`Feature: Layout Header > Given the Header renders > When the page renders on server > Then the content is present 1`] = `
 <div>
   <header
-    class="pt-12 flex flex-row justify-between items-center"
+    class="flex flex-row justify-between items-center"
   >
     <a
       aria-label="return to home page"

@@ -23,7 +23,9 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
-      <body className={`px-14 bg-background ${inter.className} antialiased`}>
+      <body
+        className={`w-full h-full px-14 py-12 bg-background ${inter.className} antialiased`}
+      >
         <Header />
 
         {children}

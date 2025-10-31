@@ -77,41 +77,37 @@ export default async function Home({
   const totalPages = Math.ceil(totalFamilies / ITEMS_PER_PAGE);
 
   return (
-    <div className="w-full">
-      <main className="pt-[58px] pb-[251px]">
-        {error && (
-          <div className="rounded-lg bg-red-50 p-4 mb-8">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        <div className="flex justify-center">
-          {fonts.length > 0 && (
-            <div className="w-fit grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {fonts.map((font) => (
-                <FontCard
-                  key={font.idFont}
-                  name={font.name}
-                  foundry={font.foundry}
-                  images={font.images}
-                  price={font.price}
-                  totalFonts={font.totalFonts}
-                  id={font.idFont}
-                />
-              ))}
-            </div>
-          )}
+    <main className="pt-[58px] pb-[251px]">
+      {error && (
+        <div className="rounded-lg bg-red-50 p-4 mb-8">
+          <p className="text-red-800">{error}</p>
         </div>
+      )}
 
-        {totalPages > 1 && fonts.length > 0 && (
-          <div className="mt-20">
-            <Pagination currentPage={currentPage} totalPages={totalPages} />
+      <div className="flex justify-center">
+        {fonts.length > 0 && (
+          <div className="w-full grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {fonts.map((font) => (
+              <FontCard
+                key={font.idFont}
+                name={font.name}
+                foundry={font.foundry}
+                images={font.images}
+                price={font.price}
+                totalFonts={font.totalFonts}
+                id={font.idFont}
+              />
+            ))}
           </div>
         )}
-      </main>
+      </div>
 
-      <footer />
-    </div>
+      {totalPages > 1 && fonts.length > 0 && (
+        <div className="mt-20">
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
+        </div>
+      )}
+    </main>
   );
 }
 
