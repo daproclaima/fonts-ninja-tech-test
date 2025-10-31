@@ -1,21 +1,22 @@
 export const ArrowRightSvg = () => (
   <svg
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
+    width="14"
+    height="9"
+    viewBox="0 0 14 9"
+    fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
     <title>arrow right</title>
     <path
-      d="M10.2 11.4667L13.9333 7.73334L10.2 4.00001"
-      stroke="#636366"
+      d="M8.94999 8.21667L12.6833 4.48334L8.94999 0.750008"
+      stroke="#8E8E93"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
-      d="M13.9333 7.7334L1.99999 7.7334"
-      stroke="#636366"
+      d="M12.6833 4.48334L0.749986 4.48334"
+      stroke="#8E8E93"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
