@@ -33,11 +33,11 @@ export const FontCard = ({
   return (
     <Link href={`/font/${String(id)}`}>
       <div className="w-full h-[314px] flex flex-col pt-12 pr-[42px] pb-12 pl-14 gap-[33px] overflow-hidden rounded-4xl bg-white dark:bg-dark-gray">
-        <div className="max-w-[334px] max-h-[153px] flex items-center justify-start overflow-hidden aspect-video">
+        <div className="flex items-center justify-start overflow-hidden aspect-video">
           <div
             // biome-ignore lint/security/noDangerouslySetInnerHtml: images.alphabet.svg is an html tag and comes from our server
             dangerouslySetInnerHTML={{ __html: images.alphabet.svg }}
-            className="scale-[65%] origin-left"
+            className="scale-[40%] md:scale-[65%] origin-left"
           />
         </div>
 

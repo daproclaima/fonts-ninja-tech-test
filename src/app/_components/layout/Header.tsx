@@ -6,7 +6,11 @@ import { toggleTheme } from "@/app/_components/theme/theme.utils";
 
 export const Header = () => (
   <header className="flex flex-row justify-between items-center">
-    <Link href="/" aria-label="return to home page">
+    <Link
+      href="/"
+      aria-label="return to home page"
+      className="[&>svg]:fill-foreground"
+    >
       <FontsNinjaSvg />
     </Link>
 

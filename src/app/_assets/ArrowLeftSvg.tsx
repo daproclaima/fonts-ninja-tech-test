@@ -2,7 +2,6 @@ export const ArrowLeftSvg = () => (
   <svg
     width="16"
     height="16"
-    className="fill-background dark:fill-foreground"
     viewBox="0 0 16 16"
     fill="#FEFEFE"
     xmlns="http://www.w3.org/2000/svg"

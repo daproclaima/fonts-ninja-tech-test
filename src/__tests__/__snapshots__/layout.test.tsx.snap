@@ -7,10 +7,10 @@ exports[`Feature: Layout > Given the Layout component is rendered > When is on s
   >
     <a
       aria-label="return to home page"
+      class="[&>svg]:fill-foreground"
       href="/"
     >
       <svg
-        class="fill-foreground"
         fill="#FEFEFE"
         height="26"
         viewBox="0 0 24 26"

@@ -15,15 +15,12 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
   return (
     <div className="flex items-center gap-4 mt-12">
       {currentPage > 1 && (
-        <Link
-          href={currentPage === 2 ? "/" : `/?page=${currentPage - 1}`}
-          className="text-neutral-600 dark:text-gray-10 hover:text-neutral-900 dark:hover:text-white transition-colors"
-        >
+        <Link href={currentPage === 2 ? "/" : `/?page=${currentPage - 1}`}>
           <ArrowLeftSvg />
         </Link>
       )}
       {currentPage === 1 && (
-        <span className="text-neutral-400 dark:text-gray-10 opacity-50">
+        <span className="opacity-50">
           <ArrowLeftSvg />
         </span>
       )}
@@ -45,15 +42,12 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
       </div>
 
       {currentPage < totalPages && (
-        <Link
-          href={`/?page=${currentPage + 1}`}
-          className="text-neutral-600 dark:text-gray-10 hover:text-neutral-900 dark:hover:text-white transition-colors"
-        >
+        <Link href={`/?page=${currentPage + 1}`}>
           <ArrowRightSvg />
         </Link>
       )}
       {currentPage === totalPages && (
-        <span className="text-neutral-400 dark:text-gray-10 opacity-50">
+        <span className="opacity-50">
           <ArrowRightSvg />
         </span>
       )}

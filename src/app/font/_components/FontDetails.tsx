@@ -28,8 +28,8 @@ export const FontDetails = ({ name, foundry, images }: FontDetailsProps) => {
   const currentImage = images[activeImage];
 
   return (
-    <div className="flex flex-row w-full gap-2">
-      <div className="w-2/3 h-[700px] pt-10 pr-1.5 pl-12 pb-[37px] flex flex-col justify-between rounded-4xl bg-white dark:bg-dark-gray">
+    <div className="flex flex-col md:flex-row w-full gap-2">
+      <div className="w-full md:w-2/3 md:h-[700px] pt-10 pr-1.5 pl-12 pb-[37px] flex flex-col justify-between rounded-4xl bg-white dark:bg-dark-gray">
         <div className="w-full h-[450px] flex items-center justify-center overflow-hidden">
           <div className="w-full h-full flex items-center justify-start overflow-hidden">
             <div
@@ -68,7 +68,7 @@ export const FontDetails = ({ name, foundry, images }: FontDetailsProps) => {
         </div>
       </div>
 
-      <div className="w-1/3 h-[700px] py-10 px-12 flex flex-col gap-6 rounded-4xl bg-white dark:bg-dark-gray">
+      <div className="w-full md:w-1/3 md:h-[700px] py-10 px-12 flex flex-col gap-6 rounded-4xl bg-white dark:bg-dark-gray">
         <div>
           <h1 className="text-4xl font-bold text-neutral-900 dark:text-gray-25 mb-2">
             {name}
